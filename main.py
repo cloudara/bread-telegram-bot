@@ -25,7 +25,7 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 AIRTABLE_API_KEY = os.getenv("AIRTABLE_API_KEY")
 AIRTABLE_BASE_ID = os.getenv("AIRTABLE_BASE_ID")
 AIRTABLE_TABLE_ID = os.getenv("AIRTABLE_TABLE_ID")
-ADMIN_CHAT_ID = int(os.getenv("ADMIN_CHAT_ID", "0"))  # твой chat_id
+ADMIN_CHAT_ID = int(os.getenv("ADMIN_CHAT_ID", "0"))
 
 # ---- STATES ----
 LANG, BREAD, EXTRAS, QUANTITY, NAME, PHONE, ADDRESS, CONFIRM = range(8)
@@ -173,7 +173,7 @@ def extras_labels_to_codes(labels, lang: str):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     kb = [[KeyboardButton(x)] for x in TEXT["lang_buttons"]]
     await update.message.reply_text(
-        TEXT["choose_lang"]["ru"],  # стартовое сообщение можно на русском
+        TEXT["choose_lang"]["ru"],
         reply_markup=ReplyKeyboardMarkup(kb, resize_keyboard=True, one_time_keyboard=True),
     )
     return LANG
@@ -417,12 +417,9 @@ application.add_handler(
 def webhook():
     data = request.get_json(force=True)
     update = Update.de_json(data, application.bot)
-    application.update_queue.put_nowait(update)
+    application.create_task(application.process_update(update))
     return "OK"
 
 
 if __name__ == "__main__":
-    # Локально можно тестировать через polling:
-    # application.run_polling()
-    # На Render — запуск через gunicorn/uvicorn, Flask берёт на себя входящий HTTP.
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", "8000")))
